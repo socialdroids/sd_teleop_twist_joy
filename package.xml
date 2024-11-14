@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>teleop_twist_joy</name>
+  <name>sd_teleop_twist_joy</name>
   <version>2.4.7</version>
   <description>Generic joystick teleop for twist robots.</description>
   <maintainer email="clalancette@openrobotics.org">Chris Lalancette</maintainer>

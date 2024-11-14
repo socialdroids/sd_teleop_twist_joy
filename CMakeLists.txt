@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(teleop_twist_joy)
+project(sd_teleop_twist_joy)
 
 # Default to C++14
 if(NOT CMAKE_CXX_STANDARD)

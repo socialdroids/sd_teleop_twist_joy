@@ -1,7 +1,6 @@
 /**
 Software License Agreement (BSD)
 
-\file      teleop_node.cpp
 \authors   Mike Purvis <mpurvis@clearpathrobotics.com>
 \copyright Copyright (c) 2014, Clearpath Robotics, Inc., All rights reserved.
 
@@ -23,19 +22,31 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCL
 ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include <memory>
+#ifndef TELEOP_TWIST_JOY_TELEOP_TWIST_JOY_H
+#define TELEOP_TWIST_JOY_TELEOP_TWIST_JOY_H
 
 #include <rclcpp/rclcpp.hpp>
+#include "sd_teleop_twist_joy/sd_teleop_twist_joy_export.h"
 
-#include "sd_teleop_twist_joy/teleop_twist_joy.hpp"
-
-int main(int argc, char *argv[])
+namespace teleop_twist_joy
 {
-  rclcpp::init(argc, argv);
 
-  rclcpp::spin(std::make_unique<teleop_twist_joy::TeleopTwistJoy>(rclcpp::NodeOptions()));
+/**
+ * Class implementing a basic Joy -> Twist translation.
+ */
+class SD_TELEOP_TWIST_JOY_EXPORT TeleopTwistJoy : public rclcpp::Node
+{
+public:
+  explicit TeleopTwistJoy(const rclcpp::NodeOptions& options);
 
-  rclcpp::shutdown();
+  virtual ~TeleopTwistJoy();
 
-  return 0;
-}
+private:
+  struct Impl;
+  Impl* pimpl_;
+  OnSetParametersCallbackHandle::SharedPtr callback_handle;  
+};
+
+}  // namespace teleop_twist_joy
+
+#endif  // TELEOP_TWIST_JOY_TELEOP_TWIST_JOY_H

@@ -36,7 +36,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 #include <rcutils/logging_macros.h>
 #include <sensor_msgs/msg/joy.hpp>
 
-#include "teleop_twist_joy/teleop_twist_joy.hpp"
+#include "sd_teleop_twist_joy/teleop_twist_joy.hpp"
 
 #define ROS_INFO_NAMED RCUTILS_LOG_INFO_NAMED
 #define ROS_INFO_COND_NAMED RCUTILS_LOG_INFO_EXPRESSION_NAMED
