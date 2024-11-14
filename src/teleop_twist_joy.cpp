@@ -381,25 +381,55 @@ void TeleopTwistJoy::Impl::fillCmdVelMsg(
 
 void TeleopTwistJoy::Impl::joyCallback(const sensor_msgs::msg::Joy::SharedPtr joy_msg)
 {
+  bool all_buttons_zero = true;
+  for (size_t i = 0; i < joy_msg->buttons.size(); ++i) {
+    if (joy_msg->buttons[i] != 0) {
+      all_buttons_zero = false;
+      break;
+    }
+  }
+
+  if (all_buttons_zero) {
+    RCLCPP_INFO(rclcpp::get_logger("TeleopTwistJoy"), "Sim em 0");
+    if (!sent_disable_msg) {
+      if (publish_stamped_twist) {
+        auto cmd_vel_stamped_msg = std::make_unique<geometry_msgs::msg::TwistStamped>();
+        cmd_vel_stamped_msg->header.stamp = clock->now();
+        cmd_vel_stamped_msg->header.frame_id = frame_id;
+        cmd_vel_stamped_pub->publish(std::move(cmd_vel_stamped_msg));
+      } else {
+        RCLCPP_INFO(rclcpp::get_logger("TeleopTwistJoy"), "Todos os botões em 0 - Parando total.");
+        auto cmd_vel_msg = std::make_unique<geometry_msgs::msg::Twist>();
+        cmd_vel_msg->linear.x = 0.0;
+        cmd_vel_msg->linear.y = 0.0;
+        cmd_vel_msg->linear.z = 0.0;
+        cmd_vel_msg->angular.x = 0.0;
+        cmd_vel_msg->angular.y = 0.0;
+        cmd_vel_msg->angular.z = 0.0;
+        cmd_vel_pub->publish(std::move(cmd_vel_msg));
+      }
+      sent_disable_msg = true;
+    }
+    return; 
+  }
+
   if (enable_turbo_button >= 0 &&
       static_cast<int>(joy_msg->buttons.size()) > enable_turbo_button &&
       joy_msg->buttons[enable_turbo_button])
   {
     sendCmdVelMsg(joy_msg, "turbo");
+    sent_disable_msg = false;
   }
   else if (!require_enable_button ||
-	   (static_cast<int>(joy_msg->buttons.size()) > enable_button &&
-           joy_msg->buttons[enable_button]))
+           (static_cast<int>(joy_msg->buttons.size()) > enable_button &&
+            joy_msg->buttons[enable_button]))
   {
     sendCmdVelMsg(joy_msg, "normal");
+    sent_disable_msg = false;
   }
   else
   {
-    // When enable button is released, immediately send a single no-motion command
-    // in order to stop the robot.
-    if (!sent_disable_msg)
-    {
-      // Initializes with zeros by default.
+    if (!sent_disable_msg) {
       if (publish_stamped_twist) {
         auto cmd_vel_stamped_msg = std::make_unique<geometry_msgs::msg::TwistStamped>();
         cmd_vel_stamped_msg->header.stamp = clock->now();
