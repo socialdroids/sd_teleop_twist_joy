@@ -390,7 +390,6 @@ void TeleopTwistJoy::Impl::joyCallback(const sensor_msgs::msg::Joy::SharedPtr jo
   }
 
   if (all_buttons_zero) {
-    RCLCPP_INFO(rclcpp::get_logger("TeleopTwistJoy"), "Sim em 0");
     if (!sent_disable_msg) {
       if (publish_stamped_twist) {
         auto cmd_vel_stamped_msg = std::make_unique<geometry_msgs::msg::TwistStamped>();
@@ -398,7 +397,6 @@ void TeleopTwistJoy::Impl::joyCallback(const sensor_msgs::msg::Joy::SharedPtr jo
         cmd_vel_stamped_msg->header.frame_id = frame_id;
         cmd_vel_stamped_pub->publish(std::move(cmd_vel_stamped_msg));
       } else {
-        RCLCPP_INFO(rclcpp::get_logger("TeleopTwistJoy"), "Todos os botões em 0 - Parando total.");
         auto cmd_vel_msg = std::make_unique<geometry_msgs::msg::Twist>();
         cmd_vel_msg->linear.x = 0.0;
         cmd_vel_msg->linear.y = 0.0;
@@ -436,7 +434,6 @@ void TeleopTwistJoy::Impl::joyCallback(const sensor_msgs::msg::Joy::SharedPtr jo
         cmd_vel_stamped_msg->header.frame_id = frame_id;
         cmd_vel_stamped_pub->publish(std::move(cmd_vel_stamped_msg));
       } else {
-        RCLCPP_INFO(rclcpp::get_logger("TeleopTwistJoy"), "Parando total!!!!");
         auto cmd_vel_msg = std::make_unique<geometry_msgs::msg::Twist>();
         cmd_vel_msg->linear.x = 0.0;
         cmd_vel_msg->linear.y = 0.0;
@@ -446,7 +443,6 @@ void TeleopTwistJoy::Impl::joyCallback(const sensor_msgs::msg::Joy::SharedPtr jo
         cmd_vel_msg->angular.z = 0.0;
         cmd_vel_pub->publish(std::move(cmd_vel_msg));
       }
-      RCLCPP_INFO(rclcpp::get_logger("TeleopTwistJoy"), "Estou em 0 - Parando o robô");
       sent_disable_msg = true;
     }
   }
