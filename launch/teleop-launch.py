@@ -19,7 +19,7 @@ def generate_launch_description():
         launch.actions.DeclareLaunchArgument('publish_stamped_twist', default_value='false'),
         launch.actions.DeclareLaunchArgument('config_filepath', default_value=[
             launch.substitutions.TextSubstitution(text=os.path.join(
-                get_package_share_directory('teleop_twist_joy'), 'config', '')),
+                get_package_share_directory('sd_teleop_twist_joy'), 'config', '')),
             joy_config, launch.substitutions.TextSubstitution(text='.config.yaml')]),
 
         launch_ros.actions.Node(
@@ -30,7 +30,7 @@ def generate_launch_description():
                 'autorepeat_rate': 20.0,
             }]),
         launch_ros.actions.Node(
-            package='teleop_twist_joy', executable='teleop_node',
+            package='sd_teleop_twist_joy', executable='teleop_node',
             name='teleop_twist_joy_node',
             parameters=[config_filepath, {'publish_stamped_twist': publish_stamped_twist}],
             remappings={('/cmd_vel', launch.substitutions.LaunchConfiguration('joy_vel'))},

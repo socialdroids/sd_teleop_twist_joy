@@ -89,13 +89,13 @@ TeleopTwistJoy::TeleopTwistJoy(const rclcpp::NodeOptions& options) : Node("teleo
   pimpl_->clock = this->get_clock();
 
   pimpl_->publish_stamped_twist = this->declare_parameter("publish_stamped_twist", false);
-  pimpl_->frame_id = this->declare_parameter("frame", "teleop_twist_joy");
+  pimpl_->frame_id = this->declare_parameter("frame", "sd_teleop_twist_joy");
 
   if (pimpl_->publish_stamped_twist) {
     pimpl_->cmd_vel_stamped_pub = this->create_publisher<geometry_msgs::msg::TwistStamped>(
-      "cmd_vel", 10);
+      "cmd_vel", 30);
   } else {
-    pimpl_->cmd_vel_pub = this->create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 10);
+    pimpl_->cmd_vel_pub = this->create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 30);
   }
   pimpl_->joy_sub = this->create_subscription<sensor_msgs::msg::Joy>(
     "joy", rclcpp::QoS(10),
@@ -349,6 +349,7 @@ double getVal(const sensor_msgs::msg::Joy::SharedPtr joy_msg, const std::map<std
 void TeleopTwistJoy::Impl::sendCmdVelMsg(const sensor_msgs::msg::Joy::SharedPtr joy_msg,
                                          const std::string& which_map)
 {
+        RCLCPP_INFO(rclcpp::get_logger("TeleopTwistJoy"), "Aqui");
   if (publish_stamped_twist) {
     auto cmd_vel_stamped_msg = std::make_unique<geometry_msgs::msg::TwistStamped>();
     cmd_vel_stamped_msg->header.stamp = clock->now();
@@ -379,55 +380,28 @@ void TeleopTwistJoy::Impl::fillCmdVelMsg(
   cmd_vel_msg->angular.x = getVal(joy_msg, axis_angular_map, scale_angular_map[which_map], "roll");
 }
 
+
 void TeleopTwistJoy::Impl::joyCallback(const sensor_msgs::msg::Joy::SharedPtr joy_msg)
 {
-  bool all_buttons_zero = true;
-  for (size_t i = 0; i < joy_msg->buttons.size(); ++i) {
-    if (joy_msg->buttons[i] != 0) {
-      all_buttons_zero = false;
-      break;
-    }
-  }
-
-  if (all_buttons_zero) {
-    if (!sent_disable_msg) {
-      if (publish_stamped_twist) {
-        auto cmd_vel_stamped_msg = std::make_unique<geometry_msgs::msg::TwistStamped>();
-        cmd_vel_stamped_msg->header.stamp = clock->now();
-        cmd_vel_stamped_msg->header.frame_id = frame_id;
-        cmd_vel_stamped_pub->publish(std::move(cmd_vel_stamped_msg));
-      } else {
-        auto cmd_vel_msg = std::make_unique<geometry_msgs::msg::Twist>();
-        cmd_vel_msg->linear.x = 0.0;
-        cmd_vel_msg->linear.y = 0.0;
-        cmd_vel_msg->linear.z = 0.0;
-        cmd_vel_msg->angular.x = 0.0;
-        cmd_vel_msg->angular.y = 0.0;
-        cmd_vel_msg->angular.z = 0.0;
-        cmd_vel_pub->publish(std::move(cmd_vel_msg));
-      }
-      sent_disable_msg = true;
-    }
-    return; 
-  }
-
   if (enable_turbo_button >= 0 &&
       static_cast<int>(joy_msg->buttons.size()) > enable_turbo_button &&
       joy_msg->buttons[enable_turbo_button])
   {
     sendCmdVelMsg(joy_msg, "turbo");
-    sent_disable_msg = false;
   }
   else if (!require_enable_button ||
-           (static_cast<int>(joy_msg->buttons.size()) > enable_button &&
-            joy_msg->buttons[enable_button]))
+	   (static_cast<int>(joy_msg->buttons.size()) > enable_button &&
+           joy_msg->buttons[enable_button]))
   {
     sendCmdVelMsg(joy_msg, "normal");
-    sent_disable_msg = false;
   }
   else
   {
-    if (!sent_disable_msg) {
+    // When enable button is released, immediately send a single no-motion command
+    // in order to stop the robot.
+    if (!sent_disable_msg)
+    {
+      // Initializes with zeros by default.
       if (publish_stamped_twist) {
         auto cmd_vel_stamped_msg = std::make_unique<geometry_msgs::msg::TwistStamped>();
         cmd_vel_stamped_msg->header.stamp = clock->now();
@@ -435,12 +409,6 @@ void TeleopTwistJoy::Impl::joyCallback(const sensor_msgs::msg::Joy::SharedPtr jo
         cmd_vel_stamped_pub->publish(std::move(cmd_vel_stamped_msg));
       } else {
         auto cmd_vel_msg = std::make_unique<geometry_msgs::msg::Twist>();
-        cmd_vel_msg->linear.x = 0.0;
-        cmd_vel_msg->linear.y = 0.0;
-        cmd_vel_msg->linear.z = 0.0;
-        cmd_vel_msg->angular.x = 0.0;
-        cmd_vel_msg->angular.y = 0.0;
-        cmd_vel_msg->angular.z = 0.0;
         cmd_vel_pub->publish(std::move(cmd_vel_msg));
       }
       sent_disable_msg = true;
