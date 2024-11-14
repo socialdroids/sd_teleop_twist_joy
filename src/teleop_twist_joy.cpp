@@ -349,7 +349,6 @@ double getVal(const sensor_msgs::msg::Joy::SharedPtr joy_msg, const std::map<std
 void TeleopTwistJoy::Impl::sendCmdVelMsg(const sensor_msgs::msg::Joy::SharedPtr joy_msg,
                                          const std::string& which_map)
 {
-        RCLCPP_INFO(rclcpp::get_logger("TeleopTwistJoy"), "Aqui");
   if (publish_stamped_twist) {
     auto cmd_vel_stamped_msg = std::make_unique<geometry_msgs::msg::TwistStamped>();
     cmd_vel_stamped_msg->header.stamp = clock->now();
